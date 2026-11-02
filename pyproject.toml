@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-coursework-search"
+version = "0.1.0"
+description = "Uninformed-search solutions for the first AI coursework"
+requires-python = ">=3.10"
+
+[project.scripts]
+ai-coursework = "ai_coursework.cli:main"
+
