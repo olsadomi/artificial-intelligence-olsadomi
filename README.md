@@ -126,6 +126,33 @@ and the generating action. It is reused by all three models.
 - **Tree:** repeated configurations are suppressed; BFS returns a shortest path.
 - **Safety:** inversion parity rejects unreachable inputs before search.
 
+The following is the BFS tree for the command-line example `123456078`. Each
+nine-digit label is read row by row, and `0` is the blank. Green nodes and thick
+arrows show the shortest solution branch; gray nodes are explored alternatives.
+
+```mermaid
+flowchart TD
+    A["123 / 456 / 078<br/>initial"]
+    B["123 / 056 / 478"]
+    C["123 / 456 / 708"]
+    D["023 / 156 / 478"]
+    E["123 / 506 / 478"]
+    F["123 / 406 / 758"]
+    G["123 / 456 / 780<br/>GOAL"]
+
+    A -->|up| B
+    A ==>|right| C
+    B -->|up| D
+    B -->|right| E
+    C -->|up| F
+    C ==>|right| G
+
+    classDef solution fill:#d9fdd3,stroke:#1b7f2a,stroke-width:2px;
+    classDef explored fill:#eeeeee,stroke:#777777;
+    class A,C,G solution;
+    class B,D,E,F explored;
+```
+
 ### Missionaries and Cannibals
 
 - **State:** `(M_left, C_left, boat_side)`.
@@ -134,6 +161,29 @@ and the generating action. It is reused by all three models.
   them.
 - **Initial/goal:** `(3,3,left)` to `(0,0,right)`. BFS finds the classic 11-crossing
   shortest solution.
+
+This diagram shows the solution branch reconstructed from the BFS parent map.
+`(M,C,L/R)` records the missionaries and cannibals on the **left** bank followed
+by the boat side. Every omitted branch is either unsafe, a repeated state, or is
+another state still waiting in the BFS frontier.
+
+```mermaid
+flowchart TD
+    S0["3,3,L<br/>initial"] ==>|"2C →"| S1["3,1,R"]
+    S1 ==>|"1C ←"| S2["3,2,L"]
+    S2 ==>|"2C →"| S3["3,0,R"]
+    S3 ==>|"1C ←"| S4["3,1,L"]
+    S4 ==>|"2M →"| S5["1,1,R"]
+    S5 ==>|"1M 1C ←"| S6["2,2,L"]
+    S6 ==>|"2M →"| S7["0,2,R"]
+    S7 ==>|"1C ←"| S8["0,3,L"]
+    S8 ==>|"2C →"| S9["0,1,R"]
+    S9 ==>|"1M ←"| S10["1,1,L"]
+    S10 ==>|"1M 1C →"| S11["0,0,R<br/>GOAL"]
+
+    classDef solution fill:#d9fdd3,stroke:#1b7f2a,stroke-width:2px;
+    class S0,S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11 solution;
+```
 
 ### Rotating Workforce Scheduling
 
@@ -145,6 +195,49 @@ and the generating action. It is reused by all three models.
 The included seven patterns represent five consecutive workdays followed by two
 days off, with each possible start day. The resulting explicit tree shows every
 staff-count decision and supports a custom seven-day demand vector.
+
+For the default demand `(3,3,3,3,3,2,2)`, one successful branch is below. `R` is
+the remaining demand and `X` is the worker count chosen so far. A full tree would
+contain every allowed worker count at each level, so the diagram displays the
+successful branch and one alternative to make the branching rule visible.
+
+```mermaid
+flowchart TD
+    W0["pattern 0<br/>R=3,3,3,3,3,2,2<br/>X=empty"]
+    W1["pattern 1<br/>R=0,0,0,0,0,2,2<br/>X=3"]
+    A1["alternative<br/>choose 2 workers"]
+    W2["pattern 2<br/>R=0,0,0,0,0,0,2<br/>X=3,2"]
+    W3["pattern 3<br/>R=0,0,0,0,0,0,0<br/>X=3,2,2"]
+    W4["patterns 3–6<br/>choose 0 for each"]
+    WG["all 7 patterns assigned<br/>X=3,2,2,0,0,0,0<br/>GOAL"]
+
+    W0 ==>|"choose 3"| W1
+    W0 -->|"choose 2"| A1
+    W1 ==>|"choose 2"| W2
+    W2 ==>|"choose 2"| W3
+    W3 ==>|"continue"| W4
+    W4 ==>|"complete"| WG
+
+    classDef solution fill:#d9fdd3,stroke:#1b7f2a,stroke-width:2px;
+    classDef explored fill:#eeeeee,stroke:#777777;
+    class W0,W1,W2,W3,W4,WG solution;
+    class A1 explored;
+```
+
+### How to draw these trees by hand
+
+1. Draw the initial state at the top as the root.
+2. Generate every legal action in the same order as the program.
+3. Draw one child node for each resulting state and label the connecting edge
+   with its action.
+4. Cross out unsafe states and states already visited; do not expand them again.
+5. For BFS, finish the entire current depth before moving down one level.
+6. Stop when the goal is removed from the frontier, then highlight its parent
+   chain back to the root.
+
+On GitHub the Mermaid blocks render automatically. For a printed submission,
+open the repository page, expand the browser window, and print the README to PDF;
+the diagrams remain vector-sharp and can then be printed or scanned.
 
 ## Project structure
 
